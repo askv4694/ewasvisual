@@ -5,7 +5,14 @@
 # url <- 'd'
 #}
 
+
 # Read raw mockdata
+#' Get Raw Data
+#'
+#' @return List of matrices: cohorts, associations, studies and annotations
+#' @examples
+#' data <- rawMockData()
+#' @export
 rawMockData <- function(){
   data1 <- readRDS("mockdata/matrix1.rds")
   data2 <- readRDS("mockdata/matrix2.rds")
@@ -15,6 +22,14 @@ rawMockData <- function(){
 }
 
 # Removes multiple study.ID since ID can have several platforms
+#' Remove duplicate Study.id
+#'
+#' @param data Data matrix that must have Study.id, platform, sample size
+#' tissue and ancestry columns
+#' @return Returns new matrix that contains data with no duplicated Study.id
+#' @examples
+#' newData <- removeDuplicates(data)
+#' @export
 removeDuplicates <- function(data){
   # Get unique ID for new matrix, add info
   studId <- unique(data$Study.id)
@@ -41,6 +56,7 @@ removeDuplicates <- function(data){
 }
 
 # Merge several data matrices, all of them must have same column name to merge by
+#'
 mergeData <- function(arrays, merge_by){
   data <- arrays[[1]]
   # Merge each data matrix with main data matrix
@@ -52,7 +68,18 @@ mergeData <- function(arrays, merge_by){
   return(data)
 }
 
-#
+#' Clean data and merge other matrices
+#'
+#' @param data A list of data matrices. First matrix must contain Study.id
+#' and tissue
+#' @param merge_by Parameter which indicated which column matrices will
+#' be merged by
+#' @return Cleaned and merged dataframe file
+#' @examples
+#' data <- cleanAndMergeData()
+#' data <- cleanAndMergeData(data = c(matrix1, matrix2, matrix3))
+#' data <- cleanAndMergeData( merge_by = "Study.id")
+#' @export
 cleanAndMergeData<- function(data, merge_by){
   # By default calls mock data
   if(missing(data)){
@@ -69,15 +96,6 @@ cleanAndMergeData<- function(data, merge_by){
   data <- mergeData(data, merge_by)
   return(data)
 }
-
-saveAsRDS<- function(data, filename){
-  write.csv(data, filename, append = FALSE, sep = "\t")
-}
-
-clean<- function(){
-  rm(list= ls())
-}
-
 
 #data <- cleanAndMergeData(merge_by = "Study.id")
 #head(data)
