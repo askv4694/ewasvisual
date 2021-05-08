@@ -2,3 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
+R/asta_kursiniui.txt
+R/note.txt
+R/fisher.R
+R/joinData.Rmd
+R/koreliacijos.R
+R/overview.Rmd
+R/visuals.R
