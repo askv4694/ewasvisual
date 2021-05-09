@@ -14,3 +14,7 @@ makeMat <-function(rowNum, row ,col){
   mat<- replace_na(mat, FALSE)
   return(mat)
 }
+
+dyn.load("src/calc.o")
+test <- .Call("calc.o")
+test
