@@ -32,26 +32,31 @@ rawMockData <- function(){
 #' @export
 removeDuplicates <- function(data){
   # Get unique ID for new matrix, add info
-  studId <- unique(data$Study.id)
+  studId <- as.character(unique(data$Study.id))
+  studId <- studId[!is.na(studId)]
   newM <- matrix(nrow = length(studId), ncol = 5)
   colnames(newM) <- c("Study.id", "Platform", "Sample.size", "Tissue", "Ancestry")
   # For each Study.id get sum sample size
   for (id in 1:length(studId)){
-    temp <- data[data$Study.id == studId[id],]
+    index <- as.character(data$Study.id) == studId[id]
+    temp <- data[which(index),]
     platform = NA
     sum = NA
+    # Remove factors if there are any
+    tissues <- unique(as.character(temp$Tissue))
+    platform <- unique(as.character(temp$Platform))
+
     # Must be same tissue and same platform
-    if (length(unique(temp$Tissue)) == 1  & length(unique(temp$Platform)) == 1){
-      if (temp$Platform[1] == "450K" || temp$Platform[1] == "850K"){
-        platform = temp$Platform[1]
+    if (length(tissues) == 1  & length(platform) == 1){
+      if (platform[1] == "450K"){
         sum = sum(temp$Sample.size)
       }
+      newM[id,] <- c(as.character(temp$Study.id[1]), platform[1],
+                sum, tissues[1], as.character(temp$Ancestry[1]))
     }
-    newM[id,] <- c(as.character(temp$Study.id[1]), platform, sum,
-                   as.character(temp$Tissue[1]), as.character(temp$Ancestry[1]))
   }
   # Remove all NA value (Platform can be NA)
-  newM <- newM[!is.na(newM[,"Platform"]),]
+  newM <- newM[!is.na(newM[,1]),]
   return(newM)
 }
 
@@ -98,4 +103,5 @@ cleanAndMergeData<- function(data, merge_by){
 }
 
 #data <- cleanAndMergeData(merge_by = "Study.id")
+#data <- cleanAndMergeData(list(matrix1,matrix2,matrix3),merge_by = "Study.id")
 #head(data)
