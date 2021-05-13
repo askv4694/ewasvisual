@@ -7,10 +7,10 @@
 #' @return Returns a matrix of rows and columns. Value is either TRUE or
 #' FALSE depending on column and row match.
 #' @examples
-#' matrix <- rowAndCol(2, c("cg_00000000", "cg_00000000"), c("Headache","Ache"))
+#' matrix <- rowAndCol(2, c("cg00000000", "cg00000000"), c("Headache","Ache"))
 #' matrix <- rowAndCol(length(dataFrame$Probe), dataFrame$Probe, dataFrame$Trait)
 #' @export
-rowAndCol <-function(row ,col){
+rowAndCol <-function(row ,col, full){
   row <- as.character(row)
   col <- as.character(col)
   mat <- matrix(nrow = length(unique(row)), ncol = length(unique(col)),
@@ -23,7 +23,27 @@ rowAndCol <-function(row ,col){
   }
   mat
   mat <- !is.na(mat)
+  if(!missing(full)){
+    for (i in 1:ncol(mat)){
+
+    }
+  }
+
   return(mat)
+}
+
+#' Rearrange given row names
+#'
+#' @param change An araay with names that will be changed to.
+#' @param row An array with names which will have same names
+#' with same order as change array.
+#' @return Rearranged array. May be extended accordingly.
+#' @examples
+#' row <- rearrange(c("a", "b", "c"), c("c", "b", "t"))
+rearrange <- function(change,row){
+  row <- names(change)%in% names(row)
+  names(row) <- names(change)
+  return(row)
 }
 
 #' Sorted matrix compatibility with given row
@@ -36,24 +56,12 @@ rowAndCol <-function(row ,col){
 #' data <- getCompatibility(arrayOfPositions,dataMatrix)
 #' @export
 getCompatibility <- function(row, data){
-  arr <- c()
+  row <- rearrange(data[,1], row)
   row <- as.vector(row)
+  arr <- c()
   for(i in 1:length(data[1,])){
     sum <- 0
-    # id will get position from row since it can be diffrent
-    #from row's position
-    #id <- names(data[,i])
     arr[i] <- sum(row & data[,i])
-    #for(j in 1:length(id)){
-      #rowid <- which(names(row) == id[j])
-      #rowObj <- as.vector(row[rowid])
-      #if((rowObj == "TRUE") & (data[j,i] == TRUE)){
-      #  sum <- sum +1
-      #}
-    #}
-    # Store all sums for later sorting
-    # For each column id
-
   }
   names(arr) <- c(1:length(data[1,]))
   arr <- sort(arr, decreasing = TRUE)
@@ -85,31 +93,47 @@ getDistance <- function(matrix, rownames,colnames){
 #' Estimated values of odd ands pval
 #'
 #' @param data Matrix that has numerical values of True/False ratio.
-#' @param anno Array of names from annotation that contains cg_00000000.
-#' @param col Array of column names from the matrix.
+#' @param row An array which will be used as a base to test to.
 #' @return Returns two matrices: first one is odds and the other - pvalues.
 #' @examples
 #' list_of_datas <- getEstimatedVals(matrix, annoNames, colnames)
 #' @export
-getEstimatedVals <- function(data, anno, col){
-  odds  <- matrix(nrow = length(unique(col)), ncol = length(unique(col)),
-        dimnames = list(unique(col),  unique(col)))
-  pvals <- matrix(nrow = length(unique(col)), ncol = length(unique(col)),
-        dimnames = list(unique(col),  unique(col)))
-  for(i in 1:length(col)){
-    col1 <- anno %in% rownames(data)[data[,i]]
-    col1 <- factor(col1, levels = c("TRUE", "FALSE"))
-    for(j in i:length(col)){
-      col2 <- anno %in% rownames(data)[data[,j]]
-      col2 <- factor(col2, levels = c("TRUE", "FALSE"))
-      tab  <- table(col1, col2)
-      fish <- fisher.test(tab)
+getEstimatedVals <- function(data, row){
+  #odds  <- matrix(nrow = nrow(data), ncol = ncol(data),
+  #      dimnames = list(rownames(data),  colnames(data)))
+  odds <- c()
+  pvals <- odds
 
-      odds[i,j]  <- fish$estimate
-      pvals[i,j] <- fish$p.value
-    }
+  for (i in 1:ncol(data)){
+    tab <- table(row, data[,i])
+    fisher <- fisher.test(tab)
+    odds[i] <- fisher$estimate
+    pvals[i] <- fisher$p.value
   }
+
   return(list(odds,pvals))
+}
+
+#' Get similar studies
+#'
+#' @param data Matrix that has numerical values of True/False ratio.
+#' @param row An array with TRUE/FALSE which will be for base row.
+#' Must have name for reach value.
+#' @return Returns an array of studies which are ordered based on similarity.
+#' @examples
+#' odds_and_pvals <- getSimilarCols(data, row)
+#' @export
+getSimilarCols <- function(data, row){
+  if (missing(row)){
+    row <- data[,13]
+  }
+  odds <- getEstimatedVals(data,row)
+  odds <- odds[[1]]
+  names(odds)<- colnames(data)
+  odds <- odds[as.vector(odds) > 0]
+  odds <- sort(odds, decreasing = TRUE)
+  similar <- data[,names(odds)]
+  return(colnames(similar))
 }
 
 #' FIll repetitive data
