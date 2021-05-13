@@ -37,21 +37,23 @@ rowAndCol <-function(row ,col){
 #' @export
 getCompatibility <- function(row, data){
   arr <- c()
+  row <- as.vector(row)
   for(i in 1:length(data[1,])){
     sum <- 0
     # id will get position from row since it can be diffrent
     #from row's position
-    id <- names(data[,i])
-    for(j in 1:length(id)){
-      rowid <- which(names(row) == id[j])
-      rowObj <- as.character(row[rowid])
-      if((rowObj == "TRUE") & (data[j,i] == TRUE)){
-        sum <- sum +1
-      }
-    }
+    #id <- names(data[,i])
+    arr[i] <- sum(row & data[,i])
+    #for(j in 1:length(id)){
+      #rowid <- which(names(row) == id[j])
+      #rowObj <- as.vector(row[rowid])
+      #if((rowObj == "TRUE") & (data[j,i] == TRUE)){
+      #  sum <- sum +1
+      #}
+    #}
     # Store all sums for later sorting
     # For each column id
-    arr[i] <- sum
+
   }
   names(arr) <- c(1:length(data[1,]))
   arr <- sort(arr, decreasing = TRUE)
