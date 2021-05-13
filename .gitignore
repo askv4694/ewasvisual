@@ -7,9 +7,7 @@ R/note.txt
 R/fisher.R
 R/joinData.Rmd
 R/koreliacijos.R
+R/build.R
 R/overview.Rmd
 R/visuals.R
-R/build.R
-mockdata/wholeMatrix.rds
 mockdata/TF_cg_study.rds
-mockdata/TrueFalse.rds
