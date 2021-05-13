@@ -82,7 +82,7 @@ mergeData <- function(arrays, merge_by){
 #' @return Cleaned and merged dataframe file
 #' @examples
 #' data <- cleanAndMergeData()
-#' data <- cleanAndMergeData(data = c(matrix1, matrix2, matrix3))
+#' data <- cleanAndMergeData(data = list(matrix1, matrix2, matrix3))
 #' data <- cleanAndMergeData( merge_by = "Study.id")
 #' @export
 cleanAndMergeData<- function(data, merge_by){
