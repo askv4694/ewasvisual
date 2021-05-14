@@ -32,27 +32,24 @@ rawMockData <- function(){
 #' @export
 removeDuplicates <- function(data){
   # Get unique ID for new matrix, add info
-  studId <- as.character(unique(data$Study.id))
+  studId <- unique(data$Study.id)
   studId <- studId[!is.na(studId)]
   newM <- matrix(nrow = length(studId), ncol = 5)
   colnames(newM) <- c("Study.id", "Platform", "Sample.size", "Tissue", "Ancestry")
   # For each Study.id get sum sample size
   for (id in 1:length(studId)){
-    index <- as.character(data$Study.id) == studId[id]
+    index <- data$Study.id == studId[id]
     temp <- data[which(index),]
     platform = NA
     sum = NA
-    # Remove factors if there are any
-    tissues <- unique(as.character(temp$Tissue))
-    platform <- unique(as.character(temp$Platform))
-
     # Must be same tissue and same platform
-    if (length(tissues) == 1  & length(platform) == 1){
-      if (platform[1] == "450K"){
+    if (length(unique(temp$Tissue)) == 1  &
+        length(unique(temp$Platform)) == 1){
+      if (temp$Platform[1] == "450K"){
         sum = sum(temp$Sample.size)
       }
-      newM[id,] <- c(as.character(temp$Study.id[1]), platform[1],
-                sum, tissues[1], as.character(temp$Ancestry[1]))
+      newM[id,] <- c(temp$Study.id[1], temp$Platform[1],
+                sum, temp$Tissue[1], temp$Ancestry[1])
     }
   }
   # Remove all NA value (Platform can be NA)
@@ -63,10 +60,10 @@ removeDuplicates <- function(data){
 # Merge several data matrices, all of them must have same column name to merge by
 #'
 mergeData <- function(arrays, merge_by){
-  data <- arrays[[1]]
+  data <- data.frame(arrays[[1]], stringsAsFactors = FALSE)
   # Merge each data matrix with main data matrix
   for(i in 2:length(arrays)){
-    data <- merge(as.data.frame(data), as.data.frame(arrays[[i]]),
+    data <- merge(data, data.frame(arrays[[i]],stringsAsFactors = FALSE),
                   by=merge_by)
     #main <- remove.factors(merge(stud, cohorts, by= "Study.id"))
   }
@@ -85,14 +82,11 @@ mergeData <- function(arrays, merge_by){
 #' data <- cleanAndMergeData(data = list(matrix1, matrix2, matrix3))
 #' data <- cleanAndMergeData( merge_by = "Study.id")
 #' @export
-cleanAndMergeData<- function(data, merge_by){
+cleanAndMergeData<- function(data, merge_by = "Study.id"){
   # By default calls mock data
   if(missing(data)){
     print("Getting mock data...")
     data <- rawMockData()[1:3]
-  }
-  if (missing(merge_by)){
-    merge_by <- "Study.id"
   }
   print("Removing duplicates...")
   # First one must be cohorts file - contains platforma and tissue
