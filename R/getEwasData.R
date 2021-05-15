@@ -111,6 +111,8 @@ cleanAndMergeData<- function(data, merge_by = "Study.id"){
   print("Merging other files...")
   data <- mergeData(data, merge_by)
   data <- deleteCols(data)
+  data <- data[which(grepl("cg\\d{8}",data$Probe.id)),]
+  data$Sample.size <- as.numeric(data$Sample.size)
   return(data)
 }
 

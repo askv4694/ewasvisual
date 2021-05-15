@@ -11,4 +11,3 @@ R/build.R
 R/overview.Rmd
 R/visuals.R
 mockdata/TF_cg_study.rds
-R/diseases.R

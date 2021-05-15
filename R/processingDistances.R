@@ -9,7 +9,10 @@
 #' matrix <- rowAndCol(c("cg00000000", "cg00000000"), c("Headache","Ache"))
 #' matrix <- rowAndCol(dataFrame$Probe, dataFrame$Trait)
 #' @export
-rowAndCol <-function(row ,col){
+rowAndCol <-function(data, row ,col){
+  rows <- data$Probe.id %in% row
+  cols <- data$Study.id %in% col
+  data <- data[which(rows), which(cols)]
   mat <- matrix(nrow = length(unique(row)), ncol = length(unique(col)),
                 dimnames = list(unique(row),  unique(col)))
 
@@ -79,7 +82,9 @@ getEstimatedVals <- function(data, col){
   pvals <- odds
 
   for (i in 1:ncol(data)){
-    tab <- table(col, data[,i])
+    colf <- factor(col, levels = c(TRUE,FALSE))
+    dataf <- factor(data[,i], levels = c(TRUE,FALSE))
+    tab <- table(colf, dataf)
     fisher <- fisher.test(tab)
     odds[i] <- fisher$estimate
     pvals[i] <- fisher$p.value
@@ -98,14 +103,14 @@ getEstimatedVals <- function(data, col){
 #' @examples
 #' odds_and_pvals <- getSimilarCols(data, row)
 #' @export
-getSimilarCols <- function(data, col = data[,13]){
+getSimilarCols <- function(data, col = names(which(data[,15] == TRUE)) ){
 
   vals <- getEstimatedVals(data,col)
   #pvals
   odds <- vals[vals$odds > 1 & vals$pvals < 0.05,]
   odds <- odds[order(odds$odds, decreasing = TRUE),]
   #similar <- data[,names(odds)]
-  return(rownames(odds))
+  return(odds)
 }
 
 #' Append all missing cg positions from annotation
@@ -125,4 +130,78 @@ maxMatrix <- function(data){
   data <- appendMatrixSize(probes, data)
   return(data)
 }
+
+processData <- function(data, col, maxPositions = FALSE,
+              minSampleSize = 100){
+  data <- data[data$Sample.size > minSampleSize,]
+  print("Processing data into positions x studies matrix...")
+  data <- rowAndCol(data$Probe.id, data$Study.id)
+  if (maxPositions){
+    data <- maxMatrix(data)
+  }
+
+  if (length(col) <= length(rownames(data))){
+    col <- makeArray(rownames(data), col)
+  }else{
+    appendMatrixSize(col, data)
+  }
+  names <- getSimilarCols(vals, col)
+  return(names)
+}
+
+estimateAllGivenVals <- function(data, col, name){
+
+  vals <- getEstimatedVals(data, col)
+
+  for(i in 1:ncol(daata)){
+    getEstimatedVals(data, )
+  }
+
+}
+
+getNewRow <- function(df, data, col, name, id, shape, color){
+  if (length(col) == 0){
+    return(df)
+  }
+  vals <- getSimilarCols(data, col)
+  if(nrow(vals) == 0){
+    df[nrow(df)+1,] <- c(id, "", 0, shape, name, color, id,id, 0, 0)
+    return(df)
+  }
+  for (i in 1:nrow(vals)){
+    arr <- makeArray(rownames(data), col)
+    tab <- table(factor(arr, levels = c(TRUE,FALSE)),
+                 factor(data[,rownames(vals)[i]], levels = c(TRUE,FALSE)))
+    df[nrow(df)+1,] <- c(id, "", vals$odds[i], shape, name, color,
+                        id, which(study_names == rownames(vals)[i]),
+                        vals$odds[i],tab[1])
+  }
+  return(df)
+}
+
+#############
+makeConnections <- function(data, col, name){
+  study_names <- c(name,colnames(data))
+  df <- data.frame(id = integer(), group = character(),
+                   value = double(), shape = character(),
+                   title_n = character(), color = character(),
+                   from = integer(), to = integer(),
+                   length = double(), title_e = integer(),
+                   stringsAsFactors = FALSE)
+  df <- getNewRow(df,data,col, name, 1,"diamond", "green")
+  for(i in 2:length(study_names)){
+    temp_col <- names(which(data[,i-1] == TRUE))
+    df <- getNewRow(df, data[,-c(i-1)], temp_col, colnames(data)[i-1], i,
+                    "circle", "grey")
+  }
+  df$id<- as.numeric(df$id)
+  df$value <- as.numeric(df$value)
+  df$from <- as.numeric(df$from)
+  df$to <- as.numeric(df$to)
+  df$length <- as.numeric(df$length)
+  df$title_e <- as.numeric(df$title_e)
+  return(df)
+}
+
+
 
