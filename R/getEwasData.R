@@ -47,9 +47,10 @@ removeDuplicates <- function(data){
         length(unique(temp$Platform)) == 1){
       if (temp$Platform[1] == "450K"){
         sum = sum(temp$Sample.size)
-      }
-      newM[id,] <- c(temp$Study.id[1], temp$Platform[1],
+
+        newM[id,] <- c(temp$Study.id[1], temp$Platform[1],
                 sum, temp$Tissue[1], temp$Ancestry[1])
+      }
     }
   }
   # Remove all NA value (Platform can be NA)
@@ -68,6 +69,22 @@ mergeData <- function(arrays, merge_by){
     #main <- remove.factors(merge(stud, cohorts, by= "Study.id"))
   }
   return(data)
+}
+
+#' Leave only certain columns
+#'
+#' @param data A dataframe of merged matrices.
+#' @return Dataframe with Study.id, Sample.size, Tissue, Trait, PMID, Ancestry.
+#' @examples
+#' data <- deleteCols(dataFrame)
+#' @export
+deleteCols <- function(data){
+  df <- data.frame("Study.id" = data$Study.id, "Probe.id" = data$Probe.id,
+                   "Sample.size" = data$Sample.size,
+                   "Tissue" = data$Tissue,"Trait" = data$Trait.x,
+                   "PMID" = data$PMID.x, "Ancestry" = data$Ancestry,
+                   stringsAsFactors = FALSE)
+  return(df)
 }
 
 #' Clean data and merge other matrices
@@ -93,6 +110,7 @@ cleanAndMergeData<- function(data, merge_by = "Study.id"){
   data[[1]] <- removeDuplicates(data[[1]])
   print("Merging other files...")
   data <- mergeData(data, merge_by)
+  data <- deleteCols(data)
   return(data)
 }
 
