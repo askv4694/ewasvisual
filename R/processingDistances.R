@@ -202,10 +202,29 @@ getNewRow <- function(df, data, col, name, shape, color){
   return(df)
 }
 
+traitTable <- function(data){
+  names <- unique(data$Study.id)
+  df <- data[1,c("Study.id", "Trait")]
+  for(i in 1:length(names)){
+    df[i,] <- c(names[i],
+                unique(data$Trait[data$Study.id == names[i]]))
+  }
+  return(df)
+}
+
+addTrait <- function(traits, df, name="", traitName = ""){
+  names <- unique(df$title_n)
+  for (i in 1:length(names)){
+    ids <- which(df$title_n %in% names[i])
+    df[ids,"trait"] <- traits$Trait[traits$Study.id == names[i]][1]
+  }
+  df[which(is.na(df$trait)),"trait"] <- traitName
+  return(df)
+}
 
 
 #############
-makeConnections <- function(data, col, name, color = c("red","darkcyan"),
+makeConnections <- function(data, col, name, traits, color = c("red","darkcyan"),
                             shape = c("diamond", "circle")){
   study_names <- c(name,colnames(data))
   df <- data.frame(id = integer(), group = character(),
@@ -234,6 +253,8 @@ makeConnections <- function(data, col, name, color = c("red","darkcyan"),
   df$length <- as.numeric(df$length)
 
   df$arrows <- c("to")
+  df <- addTrait(traits, df, name, "this is a test")
+
   return(df)
 }
 
