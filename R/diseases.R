@@ -96,6 +96,45 @@ ggplot(dataset_long) + geom_col(aes(x = Category, y = value, fill = task))
 library(ggplot2)
 #ggplot(data=iris, aes(x=Sepal.Width,fill = Species)) + geom_histogram()
 ggplot(data=data2, aes(x=title_e ,fill = trait)) + geom_histogram()
+
+stackedHistogram <- function(data, positions, studies){
+  data <- data[data$Probe.id %in% positions & data$Study.id %in%studies,]
+  names <- unique(data$Trait)
+  #spec <-
+
+  ggplot(data, aes_string(x=Probe.id)) + geom_histogram()+
+    scale_x_discrete(labels <- unique(data$Probe.id))
+}
+
+
+
+
+
+library(networkD3)
+library(dplyr)
+
+
+# A connection data frame is a list of flows with intensity for each flow
+links <- data.frame(
+  source=data$Trait[c(1,100:110, 200:250)],
+  target=data$Probe.id[c(1,100:110, 200:250)],
+  value=1
+)
+
+nodes <- data.frame(
+  name=c(as.character(links$source),
+         as.character(links$target)) %>% unique()
+)
+# With networkD3, connection must be provided using id,
+#not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1
+links$IDtarget <- match(links$target, nodes$name)-1
+
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+                   Source = "IDsource", Target = "IDtarget",
+                   Value = "value", NodeID = "name",
+                   sinksRight=FALSE)
+p
 #library(htmlwidgets)
 #library("savePlotAsPng")
 #install.packages("savePlotAsPng")
