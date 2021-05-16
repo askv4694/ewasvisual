@@ -6,13 +6,10 @@
 #' @return Returns a matrix of rows and columns. Value is either TRUE or
 #' FALSE depending on column and row match.
 #' @examples
-#' matrix <- rowAndCol(c("cg00000000", "cg00000000"), c("Headache","Ache"))
+#' matrix <- rowAndCwol(c("cg00000000", "cg00000000"), c("Headache","Ache"))
 #' matrix <- rowAndCol(dataFrame$Probe, dataFrame$Trait)
 #' @export
-rowAndCol <-function(data, row ,col){
-  rows <- data$Probe.id %in% row
-  cols <- data$Study.id %in% col
-  data <- data[which(rows), which(cols)]
+rowAndCol <-function(row ,col){
   mat <- matrix(nrow = length(unique(row)), ncol = length(unique(col)),
                 dimnames = list(unique(row),  unique(col)))
 
@@ -39,7 +36,7 @@ appendMatrixSize <- function(col, data){
 
   # Check if there are new positions
   if (length(which(!toAdd)) == 0){
-    return(0)
+    return(FALSE)
   }
   toAdd <- unique(col)[which(!toAdd)]
   for(i in 1:length(toAdd)){
@@ -64,8 +61,6 @@ makeArray <- function(change,col){
   return(col)
 }
 
-
-
 #' Estimated values of odd ands pval
 #'
 #' @param data Matrix that has numerical values of True/False ratio.
@@ -77,13 +72,14 @@ makeArray <- function(change,col){
 getEstimatedVals <- function(data, col){
   #odds  <- matrix(nrow = nrow(data), ncol = ncol(data),
   #      dimnames = list(rownames(data),  colnames(data)))
-  col <- makeArray(rownames(data), col)
+  names <- rownames(data)
+
+  col <- makeArray(names, col)
   odds <- c()
   pvals <- odds
-
   for (i in 1:ncol(data)){
     colf <- factor(col, levels = c(TRUE,FALSE))
-    dataf <- factor(data[,i], levels = c(TRUE,FALSE))
+    dataf <- factor(data[,1], levels = c(TRUE,FALSE))
     tab <- table(colf, dataf)
     fisher <- fisher.test(tab)
     odds[i] <- fisher$estimate
@@ -103,7 +99,7 @@ getEstimatedVals <- function(data, col){
 #' @examples
 #' odds_and_pvals <- getSimilarCols(data, row)
 #' @export
-getSimilarCols <- function(data, col = names(which(data[,15] == TRUE)) ){
+getSimilarCols <- function(data, col){
 
   vals <- getEstimatedVals(data,col)
   #pvals
@@ -131,50 +127,77 @@ maxMatrix <- function(data){
   return(data)
 }
 
-processData <- function(data, col, maxPositions = FALSE,
+
+####
+processData <- function(data, col = names(which(data[,15] == TRUE))
+              , positions = 0, studies = 0, maxPositions = FALSE,
               minSampleSize = 100){
+
   data <- data[data$Sample.size > minSampleSize,]
+
+  if(typeof(positions) == "character"){
+    rows <- data$Probe.id %in% positions
+    data <- data[which(rows),]
+  }
+
+  if (typeof(studies) == "character"){
+    cols <- data$Study.id %in% studies
+    data <- data[which(cols),]
+  }
+
   print("Processing data into positions x studies matrix...")
   data <- rowAndCol(data$Probe.id, data$Study.id)
   if (maxPositions){
     data <- maxMatrix(data)
   }
 
-  if (length(col) <= length(rownames(data))){
-    col <- makeArray(rownames(data), col)
-  }else{
-    appendMatrixSize(col, data)
+  if(typeof(positions) == "character"){
+    mat <- appendMatrixSize(positions,data)
+    if(typeof(mat) != "logical"){
+      data <- mat
+    }
   }
-  names <- getSimilarCols(vals, col)
-  return(names)
+  return(data)
 }
 
-estimateAllGivenVals <- function(data, col, name){
+#########################
 
-  vals <- getEstimatedVals(data, col)
+#estimateAllGivenVals <- function(data, col, name){
 
-  for(i in 1:ncol(daata)){
-    getEstimatedVals(data, )
+#  vals <- getEstimatedVals(data, col)
+
+#  for(i in 1:ncol(data)){
+#    getEstimatedVals(data, )
+#  }
+
+#}
+
+convertIDS <- function(df, cln){
+  names <- unique(df[,cln])
+  for(i in 1:length(names)){
+    ids <- which(df[,cln] %in% names[i])
+    df[ids, cln] <- df$id[df$title_n == names[i]]
   }
-
+  return(df)
 }
+######################
 
-getNewRow <- function(df, data, col, name, id, shape, color){
+getNewRow <- function(df, data, col, name, shape, color){
   if (length(col) == 0){
     return(df)
   }
   vals <- getSimilarCols(data, col)
+  id <- nrow(df)+1
   if(nrow(vals) == 0){
-    df[nrow(df)+1,] <- c(id, "", 0, shape, name, color, id,id, 0, 0)
+    df[id,] <- c(id, "", 0, shape, name, color, name, name, 0, 0)
     return(df)
   }
   for (i in 1:nrow(vals)){
     arr <- makeArray(rownames(data), col)
     tab <- table(factor(arr, levels = c(TRUE,FALSE)),
                  factor(data[,rownames(vals)[i]], levels = c(TRUE,FALSE)))
-    df[nrow(df)+1,] <- c(id, "", vals$odds[i], shape, name, color,
-                        id, which(study_names == rownames(vals)[i]),
-                        vals$odds[i],tab[1])
+    df[id,] <- c(id, "", vals$odds[i], shape, name, color,
+                        name, rownames(vals)[i],vals$odds[i],tab[1])
   }
   return(df)
 }
@@ -185,21 +208,27 @@ makeConnections <- function(data, col, name){
   df <- data.frame(id = integer(), group = character(),
                    value = double(), shape = character(),
                    title_n = character(), color = character(),
-                   from = integer(), to = integer(),
+                   from = character(), to = character(),
                    length = double(), title_e = integer(),
                    stringsAsFactors = FALSE)
-  df <- getNewRow(df,data,col, name, 1,"diamond", "green")
-  for(i in 2:length(study_names)){
-    temp_col <- names(which(data[,i-1] == TRUE))
-    df <- getNewRow(df, data[,-c(i-1)], temp_col, colnames(data)[i-1], i,
+  df <- getNewRow(df,data,col, name, "diamond", "green")
+  for(i in 1:length(study_names)-1){
+    temp_col <- names(which(data[,i] == TRUE))
+    df <- getNewRow(df, data[,-c(i), drop = FALSE], temp_col, colnames(data)[i],
                     "circle", "grey")
   }
+
   df$id<- as.numeric(df$id)
   df$value <- as.numeric(df$value)
-  df$from <- as.numeric(df$from)
-  df$to <- as.numeric(df$to)
   df$length <- as.numeric(df$length)
   df$title_e <- as.numeric(df$title_e)
+
+  df <- convertIDS(df, "from")
+  df <- convertIDS(df, "to")
+
+  df$from <- as.numeric(df$from)
+  df$to <- as.numeric(df$to)
+
   return(df)
 }
 

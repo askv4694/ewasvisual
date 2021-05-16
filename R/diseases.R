@@ -3,7 +3,7 @@
 
 
 
-makeNodes <- function(vals, df){
+makeNodes <- function(df){
   nodes <- data.frame(id = df$id,
                       group = df$group,
                       value = df$value,
@@ -14,7 +14,7 @@ makeNodes <- function(vals, df){
   return(nodes)
 }
 
-makeEdges <- function(vals,df){
+makeEdges <- function(df){
   edges <- data.frame(from = df$from,
                       to = df$to,
                       length = df$length,
@@ -27,16 +27,28 @@ makeEdges <- function(vals,df){
 }
 
 
+getVisNetwork <- function(data, save = FALSE, path, name){
+  library(visNetwork)
 
-library(visNetwork)
+  nodes <- makeNodes(data)
+  edges <- makeEdges(data)
+  v <-visNetwork(nodes, edges, width = "100%")
+  if(save){
+    visSave(v, file.path(paste0(path,"/",name)),
+            selfcontained = TRUE, background = "white")
+  }
+  return(v)
+}
 
-v <-visNetwork(nodes, edges, width = "100%")
-v
-library(htmlwidgets)
+getDiseases <- function(data){
+
+}
+
+
+#library(htmlwidgets)
 #library("savePlotAsPng")
 #install.packages("savePlotAsPng")
 #savePlotAsPng(v, file = "mockdata/v.png", width = 600, height = 480)
 
 #saveWidget(v, file = "mockdata/v.html")
-visSave(v, file.path(paste0(getwd(),"/mockdata/network.html")),
-        selfcontained = TRUE, background = "white")
+
