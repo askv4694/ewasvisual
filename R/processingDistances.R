@@ -202,20 +202,11 @@ getNewRow <- function(df, data, col, name, shape, color){
   return(df)
 }
 
-hideArrows <- function(df){
-  for(i in 1:nrow(df)){
-    row <- df[i,]
-    check <- which(df$from == row$to & df$to == row$from)
-    if (length(check) > 0 && df$arrows[i] != ""){
-        df[check,"arrows"] <- ""
-        df[check,"to"] <- 0
-    }
-  }
-  return(df)
-}
+
 
 #############
-makeConnections <- function(data, col, name){
+makeConnections <- function(data, col, name, color = c("red","darkcyan"),
+                            shape = c("diamond", "circle")){
   study_names <- c(name,colnames(data))
   df <- data.frame(id = integer(), group = character(),
                    value = double(), shape = character(),
@@ -223,11 +214,11 @@ makeConnections <- function(data, col, name){
                    from = character(), to = character(),
                    length = double(), title_e = integer(),
                    stringsAsFactors = FALSE)
-  df <- getNewRow(df,data,col, name, "diamond", "red")
+  df <- getNewRow(df,data,col, name, shape[1], color[1])
   for(i in 1:length(study_names)-1){
     temp_col <- names(which(data[,i] == TRUE))
     df <- getNewRow(df, data[,-c(i), drop = FALSE], temp_col, colnames(data)[i],
-                    "circle", "blue")
+                    shape[2], color[2])
   }
 
   df$id<- as.numeric(df$id)
@@ -243,7 +234,6 @@ makeConnections <- function(data, col, name){
   df$length <- as.numeric(df$length)
 
   df$arrows <- c("to")
-  df <- hideArrows(df)
   return(df)
 }
 

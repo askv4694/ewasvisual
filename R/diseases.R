@@ -1,12 +1,23 @@
 
 
-
+hideArrows <- function(df){
+  for(i in 1:nrow(df)){
+    row <- df[i,]
+    check <- which(df$from == row$to & df$to == row$from)
+    if (length(check) > 0 && df$arrows[i] != ""){
+      df[check,"arrows"] <- ""
+      df[check,"to"] <- 0
+    }
+  }
+  return(df)
+}
 
 
 makeNodes <- function(df){
   df <- df[union(df$from,df$to),]
   nodes <- data.frame(id = df$id,
                       #group = df$group,
+                      label = df$id,
                       value = df$value,
                       shape = df$shape,
                       title = df$title_n,
@@ -19,6 +30,7 @@ makeNodes <- function(df){
 makeEdges <- function(df){
   edges <- data.frame(from = df$from,
                       to = df$to,
+                      value = df$title_e,
                       #length = df$title_e,
                       arrows = df$arrows,
                       #dashes = FALSE,
@@ -32,7 +44,7 @@ makeEdges <- function(df){
 
 getVisNetwork <- function(data, save = FALSE, path, name){
   library(visNetwork)
-
+  data <- hideArrows(data)
   nodes <- makeNodes(data)
   edges <- makeEdges(data)
   v <-visNetwork(nodes, edges, width = "100%") %>%
