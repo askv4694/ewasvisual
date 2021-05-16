@@ -79,7 +79,7 @@ getEstimatedVals <- function(data, col){
   pvals <- odds
   for (i in 1:ncol(data)){
     colf <- factor(col, levels = c(TRUE,FALSE))
-    dataf <- factor(data[,1], levels = c(TRUE,FALSE))
+    dataf <- factor(data[,i], levels = c(TRUE,FALSE))
     tab <- table(colf, dataf)
     fisher <- fisher.test(tab)
     odds[i] <- fisher$estimate
@@ -189,7 +189,7 @@ getNewRow <- function(df, data, col, name, shape, color){
   vals <- getSimilarCols(data, col)
   id <- nrow(df)+1
   if(nrow(vals) == 0){
-    df[id,] <- c(id, "", 0, shape, name, color, name, name, 0, 0)
+    #df[id,] <- c(id, "", 0, shape, name, color, name, name, 0, 0)
     return(df)
   }
   for (i in 1:nrow(vals)){
@@ -198,6 +198,18 @@ getNewRow <- function(df, data, col, name, shape, color){
                  factor(data[,rownames(vals)[i]], levels = c(TRUE,FALSE)))
     df[nrow(df)+1,] <- c(nrow(df)+1, "", vals$odds[i], shape, name, color,
                         name, rownames(vals)[i],vals$odds[i],tab[1])
+  }
+  return(df)
+}
+
+hideArrows <- function(df){
+  for(i in 1:nrow(df)){
+    row <- df[i,]
+    check <- which(df$from == row$to & df$to == row$from)
+    if (length(check) > 0 && df$arrows[i] != ""){
+        df[check,"arrows"] <- ""
+        df[check,"to"] <- 0
+    }
   }
   return(df)
 }
@@ -211,11 +223,11 @@ makeConnections <- function(data, col, name){
                    from = character(), to = character(),
                    length = double(), title_e = integer(),
                    stringsAsFactors = FALSE)
-  df <- getNewRow(df,data,col, name, "diamond", "green")
+  df <- getNewRow(df,data,col, name, "diamond", "red")
   for(i in 1:length(study_names)-1){
     temp_col <- names(which(data[,i] == TRUE))
     df <- getNewRow(df, data[,-c(i), drop = FALSE], temp_col, colnames(data)[i],
-                    "circle", "grey")
+                    "circle", "blue")
   }
 
   df$id<- as.numeric(df$id)
@@ -230,6 +242,8 @@ makeConnections <- function(data, col, name){
 
   df$length <- as.numeric(df$length)
 
+  df$arrows <- c("to")
+  df <- hideArrows(df)
   return(df)
 }
 

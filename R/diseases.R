@@ -7,7 +7,7 @@ makeNodes <- function(df){
   df <- df[union(df$from,df$to),]
   nodes <- data.frame(id = df$id,
                       #group = df$group,
-                      #value = df$value,
+                      value = df$value,
                       shape = df$shape,
                       title = df$title_n,
                       color = df$color
@@ -18,11 +18,11 @@ makeNodes <- function(df){
 
 makeEdges <- function(df){
   edges <- data.frame(from = df$from,
-                      to = df$to
+                      to = df$to,
                       #length = df$title_e,
-                      #arrows = "middle",
+                      arrows = df$arrows,
                       #dashes = FALSE,
-                      #title = df$title_e,
+                      title = df$title_e
                       #smooth = FALSE,
                       #shadow = FALSE
                       )
