@@ -176,7 +176,7 @@ convertIDS <- function(df, cln){
   names <- unique(df[,cln])
   for(i in 1:length(names)){
     ids <- which(df[,cln] %in% names[i])
-    df[ids, cln] <- df$id[df$title_n == names[i]]
+    df[ids, cln] <- df$id[df$title_n == names[i]][1]
   }
   return(df)
 }
@@ -196,7 +196,7 @@ getNewRow <- function(df, data, col, name, shape, color){
     arr <- makeArray(rownames(data), col)
     tab <- table(factor(arr, levels = c(TRUE,FALSE)),
                  factor(data[,rownames(vals)[i]], levels = c(TRUE,FALSE)))
-    df[id,] <- c(id, "", vals$odds[i], shape, name, color,
+    df[nrow(df)+1,] <- c(nrow(df)+1, "", vals$odds[i], shape, name, color,
                         name, rownames(vals)[i],vals$odds[i],tab[1])
   }
   return(df)
@@ -220,7 +220,6 @@ makeConnections <- function(data, col, name){
 
   df$id<- as.numeric(df$id)
   df$value <- as.numeric(df$value)
-  df$length <- as.numeric(df$length)
   df$title_e <- as.numeric(df$title_e)
 
   df <- convertIDS(df, "from")
@@ -228,6 +227,8 @@ makeConnections <- function(data, col, name){
 
   df$from <- as.numeric(df$from)
   df$to <- as.numeric(df$to)
+
+  df$length <- as.numeric(df$length)
 
   return(df)
 }

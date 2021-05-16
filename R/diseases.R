@@ -4,25 +4,28 @@
 
 
 makeNodes <- function(df){
+  df <- df[union(df$from,df$to),]
   nodes <- data.frame(id = df$id,
-                      group = df$group,
-                      value = df$value,
+                      #group = df$group,
+                      #value = df$value,
                       shape = df$shape,
                       title = df$title_n,
-                      color = df$color,
-                      shadow = FALSE)
+                      color = df$color
+                      #shadow = FALSE
+                      )
   return(nodes)
 }
 
 makeEdges <- function(df){
   edges <- data.frame(from = df$from,
-                      to = df$to,
-                      length = df$length,
-                      arrows = "middle",
-                      dashes = FALSE,
-                      title = df$title_e,
-                      smooth = FALSE,
-                      shadow = FALSE)
+                      to = df$to
+                      #length = df$title_e,
+                      #arrows = "middle",
+                      #dashes = FALSE,
+                      #title = df$title_e,
+                      #smooth = FALSE,
+                      #shadow = FALSE
+                      )
   return(edges)
 }
 
@@ -32,7 +35,8 @@ getVisNetwork <- function(data, save = FALSE, path, name){
 
   nodes <- makeNodes(data)
   edges <- makeEdges(data)
-  v <-visNetwork(nodes, edges, width = "100%")
+  v <-visNetwork(nodes, edges, width = "100%") %>%
+    visClusteringOutliers(1)
   if(save){
     visSave(v, file.path(paste0(path,"/",name)),
             selfcontained = TRUE, background = "white")
