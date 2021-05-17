@@ -58,53 +58,72 @@ getVisNetwork <- function(data, save = FALSE, path, name){
 }
 
 getSimilarTraits <- function(data, study = "", id = 0){
-  if (id == 0){ id <- data2$id[data2$title_n == study][1]}
-  dat <- data2[data2$from == id,]
+
+  if (id == 0){
+    id <- data$id[data$title_n == study][1]
+  }
+
+  dat <- data[data$from == id,]
   #dat[,-c("from", "to","arrows")]
   return(dat)
 }
 
+#
+data <- readRDS("mockdata/wholeMatrix.rds")
+col <- unique(data$Probe.id)[c(1:22,33:44,48:68,102:132)]
+positions <- unique(data$Probe.id)[1:300]
+studies <- unique(data$Study.id)[c(1:14,18:24,55, 76:99,105)]
+data1 <- processData(data,col, positions, studies)
+traits <- traitTable(data)
+data2 <- makeConnections(data1, col, "STUDY", traits)
+v<- getVisNetwork(data2)
+v
 
+sim <- getSimilarTraits(data2, id = 1)
 #######################
 ########################
 #########################
 
 library(dplyr)
 library(tidyverse)
-dataset <- structure(list(ID = c(6, 7, 8, 9, 10, 11, 12, 13, 14,
-                       15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25),
-          Category = c("5 - Expert", "2 - Novice", "3 - Intermediate", "5 - Expert",
-                                       "2 - Novice", "3 - Intermediate", "3 - Intermediate",
-                       "3 - Intermediate", "2 - Novice", "3 - Intermediate", "2 - Novice", "4 - Advanced",
-                       "2 - Novice", "3 - Intermediate", "2 - Novice", "5 - Expert", "4 - Advanced",
-                       "2 - Novice", "2 - Novice", "3 - Intermediate"),
-          Task1 = structure(c(300, 360, 240, 180, 180, 240, 240, 360, 300,
-                              300, 180, 360, 240, 240, 240, 300, 240, 240, 240, 240),
-                            class = c("hms", "difftime"), units = "secs"),
-          Task2 = structure(c(480, 360, 660, 420, 660, 240, 660, 540, 780, 360, 540, 720, 360,
-                              480, 540, 300, 420, 600, 240, 660), class = c("hms", "difftime"),
-                            units = "secs"), Task3 = structure(c(360, 480, 240, 300, 240, 240, 240, 240,
-                                             240, 180, 240, 180, 120, 120, 240, 240,
-                                           240, 240, 300, 240), class = c("hms", "difftime"),
-                            units = "secs")), row.names = c(NA, -20L),
-          class = c("tbl_df", "tbl", "data.frame"))
 
-dataset_long <- dataset %>% gather(task, value, Task1:Task3)
-
-ggplot(dataset_long) + geom_col(aes(x = Category, y = value, fill = task))
-
-library(ggplot2)
-#ggplot(data=iris, aes(x=Sepal.Width,fill = Species)) + geom_histogram()
-ggplot(data=data2, aes(x=title_e ,fill = trait)) + geom_histogram()
-
-stackedHistogram <- function(data, positions, studies){
-  data <- data[data$Probe.id %in% positions & data$Study.id %in%studies,]
-  names <- unique(data$Trait)
-  #spec <-
-
-  ggplot(data, aes_string(x=Probe.id)) + geom_histogram()+
-    scale_x_discrete(labels <- unique(data$Probe.id))
+dfForHistogram <- function(data, traits, positions){
+  library(ggplot2)
+  traits <- unique(traits)
+  pos <- unique(positions)
+  data <- data[data$Probe.id %in% positions & data$Trait %in% traits,]
+  df <- data.frame("Probe.id" = character(), "Trait" = character(),
+             "count" = numeric(), stringsAsFactors = FALSE)
+  id <- 1
+  for(i in 1:length(pos)){
+    for(j in 1:length(traits)){
+      count <- length(data$Probe.id[data$Probe.id == pos[i] &
+                                    data$Trait == traits[j]])
+      if(count > 0){
+        df[id,1] <- pos[i]
+        df[id,2] <- traits[j]
+        df[id,3] <- count
+        id <- id +1
+      }
+    }
+  }
+  return(df)
 }
+
+stackedHistogram <- function(df){
+  g <- ggplot(df[df$count > 1,], aes(x = Probe.id, y = count,
+                 label = count, fill = Trait)) +
+  geom_bar(stat = "identity") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  return(g)
+}
+
+#unique(df$trait)
+#ggplot(df[df$count > 3,]) + geom_col(aes(x = position, y = count))+
+
+
+
 
 
 
