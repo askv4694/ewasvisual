@@ -6,8 +6,7 @@
 #}
 
 
-# Read raw mockdata
-#' Get Raw Data
+#' Get Raw Mock Data
 #'
 #' @return List of matrices: cohorts, associations, studies and annotations
 #' @examples
@@ -24,8 +23,8 @@ rawMockData <- function(){
 # Removes multiple study.ID since ID can have several platforms
 #' Remove duplicate Study.id
 #'
-#' @param data Data matrix that must have Study.id, platform, sample size
-#' tissue and ancestry columns
+#' @param data Data matrix that must have Study.id, Platform, Sample.size
+#' Tissue and Ancestry columns
 #' @return Returns new matrix that contains data with no duplicated Study.id
 #' @examples
 #' newData <- removeDuplicates(data)
@@ -35,7 +34,8 @@ removeDuplicates <- function(data){
   studId <- unique(data$Study.id)
   studId <- studId[!is.na(studId)]
   newM <- matrix(nrow = length(studId), ncol = 5)
-  colnames(newM) <- c("Study.id", "Platform", "Sample.size", "Tissue", "Ancestry")
+  colnames(newM) <- c("Study.id", "Platform", "Sample.size",
+                      "Tissue", "Ancestry")
   # For each Study.id get sum sample size
   for (id in 1:length(studId)){
     index <- data$Study.id == studId[id]
@@ -58,13 +58,20 @@ removeDuplicates <- function(data){
   return(newM)
 }
 
-# Merge several data matrices, all of them must have same column name to merge by
+#' Merge several data matrices
 #'
-mergeData <- function(arrays, merge_by){
-  data <- data.frame(arrays[[1]], stringsAsFactors = FALSE)
+#' @param matrices A list of matrices to merge
+#' @param merge_by A column name that will be merged by
+#' Must have same column name
+#' @return Returns merged dataframe of listed matrices
+#' @examples
+#' data<- mergeData(list(mat1, mat2, mat3), "Study.id")
+#' @export
+mergeData <- function(matrices, merge_by){
+  data <- data.frame(matrices[[1]], stringsAsFactors = FALSE)
   # Merge each data matrix with main data matrix
-  for(i in 2:length(arrays)){
-    data <- merge(data, data.frame(arrays[[i]],stringsAsFactors = FALSE),
+  for(i in 2:length(matrices)){
+    data <- merge(data, data.frame(matrices[[i]],stringsAsFactors = FALSE),
                   by=merge_by)
     #main <- remove.factors(merge(stud, cohorts, by= "Study.id"))
   }
@@ -73,8 +80,8 @@ mergeData <- function(arrays, merge_by){
 
 #' Leave only certain columns
 #'
-#' @param data A dataframe of merged matrices.
-#' @return Dataframe with Study.id, Sample.size, Tissue, Trait, PMID, Ancestry.
+#' @param data A dataframe of merged matrices
+#' @return Dataframe with Study.id, Sample.size, Tissue, Trait, PMID, Ancestry
 #' @examples
 #' data <- deleteCols(dataFrame)
 #' @export
@@ -89,7 +96,7 @@ deleteCols <- function(data){
 
 #' Clean data and merge other matrices
 #'
-#' @param data A list of data matrices. First matrix must contain Study.id
+#' @param data A list of data matrices, first matrix must contain Study.id
 #' and tissue
 #' @param merge_by Parameter which indicated which column matrices will
 #' be merged by
@@ -115,7 +122,3 @@ cleanAndMergeData<- function(data, merge_by = "Study.id"){
   data$Sample.size <- as.numeric(data$Sample.size)
   return(data)
 }
-
-#data <- cleanAndMergeData(merge_by = "Study.id")
-#data <- cleanAndMergeData(list(matrix1,matrix2,matrix3),merge_by = "Study.id")
-#head(data)
