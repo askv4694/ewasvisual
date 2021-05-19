@@ -125,14 +125,28 @@ maxMatrix <- function(data){
   return(data)
 }
 
+#' Filter data according to given array
+#'
+#' @param data A dataframe of merged data
+#' @param colName A column name which will be filtered by
+#' @param array An array that determins which rows will be left.
+#' @return A dataframe of filtered data
+#' @examples
+#' data <- filterBy(data, "Probe.id", c("cg02609880", "cg06874172"))
+#' data <- filterBy(data, "Study.id", c("ES00034, "ES00035))
+#' data <- filterBy(data, "Trait", c("aging", "air pollution (PM2.5)"))
+#' @export
+filterBy <- function(data, colName, array){
+   data <- data[which(data[,colName] %in% array),]
+   return(data)
+}
 
 ####
 
 #' Process data into a dataframe for connections
 #'
 #' @param data A dataframe of general data
-#' @param col An array of cg positions in new study
-#' @param positions An array of cg positions in general
+#' @param positions An array of cg positions in the new study
 #' that wants to be checked, 0 by default - all positions included
 #' @param studies An array of study names that wants to be checked,
 #' 0 by default - all study names included
@@ -146,21 +160,23 @@ maxMatrix <- function(data){
 #' data1 <- processData(data, col, positions, studies)
 #' data1 <- processData(data, col, positions, minSampleSize = 500)
 #' @export
-processData <- function(data, col = names(which(data[,15] == TRUE))
-              , positions = 0, studies = 0, maxPositions = FALSE,
-              minSampleSize = 100){
+processData <- function(data, positions = 0, studies = 0,
+              studByTraits = 0,
+              maxPositions = FALSE, minSampleSize = 100){
 
   data <- data[data$Sample.size > minSampleSize,]
 
   if(typeof(positions) == "character"){
-    rows <- data$Probe.id %in% positions
-    data <- data[which(rows),]
+    data<- filterBy(data, "Probe.id", positions)
+  }
+  if (typeof(studies) == "character"){
+    data <- filterBy(data, "Study.id", studies)
+  }
+  if(typeof(studByTraits) == "character"){
+    data <- filterBy(data, "Trait", studByTraits)
   }
 
-  if (typeof(studies) == "character"){
-    cols <- data$Study.id %in% studies
-    data <- data[which(cols),]
-  }
+
 
   print("Processing data into positions x studies matrix...")
   data <- rowAndCol(data$Probe.id, data$Study.id)
@@ -281,10 +297,13 @@ addTrait <- function(traits, df, name="", traitName = ""){
 #' data2 <- makeConnections(data, positions, traits,
 #'      c("green", "yellow"), c("star", "circle"))
 #' @export
-makeConnections <- function(data, col, name, traits,
+makeConnections <- function(data, col = 15 ,name, traits,
                             color = c("red","darkcyan"),
                             shape = c("diamond", "circle")){
   study_names <- c(name,colnames(data))
+  if(typeof(col) == "double"){
+    col <- names(which(data[,col] == TRUE))
+  }
   df <- data.frame(id = integer(), group = character(),
                    value = double(), shape = character(),
                    title_n = character(), color = character(),

@@ -11,3 +11,5 @@ R/build.R
 R/overview.Rmd
 R/visuals.R
 mockdata/TF_cg_study.rds
+mockdata/sleepConnections.rds
+mockdata/insuffSleep.rds
