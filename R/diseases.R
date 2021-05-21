@@ -6,17 +6,32 @@
 #' @example
 #' df <- hideArrows(df)
 #' @export
-hideArrows <- function(df){
+hideArrows <- function(df, minLength = 0){
   for(i in 1:nrow(df)){
     row <- df[i,]
-    check <- which(df$from == row$to & df$to == row$from)
-    if (length(check) > 0 && df$arrows[i] != ""){
+    check <- which(((df$from == row$to) & (df$to == row$from)) |
+                     ((df$title_e < minLength) & (df$from != 1)))
+    if ((length(check) > 0 & df$arrows[i] != "")){
       df[check,"arrows"] <- ""
       df[check,"to"] <- 0
     }
   }
   return(df)
 }
+
+#hideNodes <- function(df){
+  #for(i in 1:nrow(df)){
+  #
+  #  if(!((unique(df$to %in% df$id[i])) &
+  #       (df$id != 1)))
+  #  df$show[i] <- df$to %in% df$id[i]
+  #    ifelse(!((unique(df$to %in% df$id[i])) &
+  #                         (df$id != 1)), FALSE, TRUE)
+  #}
+#  return(df)
+#}
+
+
 
 #' Make nodes for visNetwork
 #'
@@ -26,7 +41,7 @@ hideArrows <- function(df){
 #' nodes <- makeNodes(df)
 #' @export
 makeNodes <- function(df){
-  df <- df[union(df$from,df$to),]
+  df <- df[union(df$from[df$to > 0],df$to),]
   nodes <- data.frame(id = df$id,
                       group = df$trait,
                       label = df$id,
@@ -75,18 +90,18 @@ makeEdges <- function(df){
 #' network <- getVisNetwork(data)
 #' network <- getVisNetwork(data, TRUE, ".../home", "save.html")
 #' @export
-getVisNetwork <- function(data, save = FALSE, path, name){
+getVisNetwork <- function(data, len = 0, save = FALSE, path, name){
   if(nrow(data) == 0){
     print("There are no networks to show.")
   }
   library(visNetwork)
-  data <- hideArrows(data)
+  data <- hideArrows(data, len)
   nodes <- makeNodes(data)
   edges <- makeEdges(data)
   v <-visNetwork(nodes, edges, width = "100%") %>%
     visClusteringOutliers(1)
   if(save){
-    visSave(v, file.path(paste0(path,"/",name)),
+    visSave(v, "testing.html",
             selfcontained = TRUE, background = "white")
   }
   return(v)
@@ -124,12 +139,9 @@ getSimilarTraits <- function(data, id = 0, study = ""){
                  tdata$trait[i], tdata$to[i], data$title_n[tid],
                  data$trait[tid], tdata$title_e[i])
   }
-  #dat$length <- dat$
   return(dat)
 }
 
-
-#sim <- getSimilarTraits(data2, id = 1)
 #######################
 ########################
 #########################
@@ -208,31 +220,11 @@ instructions <- function(){
   print('data1 <- processData(data, positions, studies)')
   print('traits <- traitTable(data)')
   print('data2 <- makeConnections(data1, positions, studyName, traits)')
+  print('similar <- getSimilarTraits(data2, id = 1)')
   print('network <- getVisNetwork(data2)')
   print('df <- dfForHistogram(data, positions)')
   print('hist <- stackedHistogram(df)')
-
-  data <- readRDS("mockdata/wholeMatrix.rds")
-  col <- unique(data$Probe.id)[c(1:22,33:44,48:68,102:132)]
-  positions <- unique(data$Probe.id)[1:300]
-  studies <- unique(data$Study.id)[c(1:14,18:24,55, 76:99,105)]
-  data1 <- processData(data,col, positions, studies)
-  traits <- traitTable(data)
-  data2 <- makeConnections(data1, col, "STUDY", traits)
-  v<- getVisNetwork(data2)
-  v
 }
-
-
-#unique(df$trait)
-#ggplot(df[df$count > 3,]) + geom_col(aes(x = position, y = count))+
-
-
-
-
-
-
-
 
 #library(networkD3)
 #library(dplyr)
