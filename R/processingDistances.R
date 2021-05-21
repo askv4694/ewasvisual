@@ -281,6 +281,22 @@ addTrait <- function(traits, df, name="", traitName = ""){
   return(df)
 }
 
+#' Set trait color
+#'
+#' @param df A dataframe that shows connections for visNetwork
+#' @param colors An array of colors that defines trait color in graph
+#' @param traits An array of traits that needs to be colored
+#' @return A dataframe with changed colors
+#' @examples
+#' df <- setTraitColors(df, c("red", "green"), c("smoking", "aging"))
+#' @export
+setTraitColors <- function(df,colors, traits){
+  for(i in 1:length(colors)){
+    df[which(df$trait %in% traits[i]), "color"] <- colors[i]
+  }
+  return(df)
+}
+
 #############
 
 #' Make a dataframe of linked studies
@@ -297,8 +313,8 @@ addTrait <- function(traits, df, name="", traitName = ""){
 #' data2 <- makeConnections(data, positions, traits,
 #'      c("green", "yellow"), c("star", "circle"))
 #' @export
-makeConnections <- function(data, col = 15 ,name, traits,
-                            color = c("red","darkcyan"),
+makeConnections <- function(data, col = 15 ,name, type ,traitMatrix,
+                            traits, color = c("red","darkcyan"),
                             shape = c("diamond", "circle")){
   study_names <- c(name,colnames(data))
   if(typeof(col) == "double"){
@@ -330,7 +346,10 @@ makeConnections <- function(data, col = 15 ,name, traits,
   df$length <- as.numeric(df$length)
 
   df$arrows <- c("to")
-  df <- addTrait(traits, df, name, "this is a test")
+  df <- addTrait(traitMatrix, df, name, type)
+  if((length(color) > 2)){
+    df <- setTraitColors(df, colors[-c(1:2)], traits)
+  }
 
   return(df)
 }

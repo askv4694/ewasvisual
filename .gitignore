@@ -13,3 +13,14 @@ R/visuals.R
 mockdata/TF_cg_study.rds
 mockdata/sleepConnections.rds
 mockdata/insuffSleep.rds
+mockdata/corona_ES.rds
+mockdata/covid_network.rds
+mockdata/study-study.rds
+visuals/covid.html
+visuals/covid_files/htmlwidgets-1.5.1/htmlwidgets.js
+visuals/covid_files/vis-4.20.1/img/network/acceptDeleteIcon.png
+visuals/covid_files/vis-4.20.1/img/network/addNodeIcon.png
+*.png
+visuals/covid_files/vis-4.20.1/vis.css
+visuals/covid_files/vis-4.20.1/vis.min.js
+visuals/covid_files/visNetwork-binding-2.0.9/visNetwork.js

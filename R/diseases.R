@@ -88,7 +88,7 @@ makeEdges <- function(df){
 #' @return A plot visNetwork graph
 #' @examples
 #' network <- getVisNetwork(data)
-#' network <- getVisNetwork(data, TRUE, ".../home", "save.html")
+#' network <- getVisNetwork(data, TRUE, "C:/../home/test.html", "save.html")
 #' @export
 getVisNetwork <- function(data, len = 0, save = FALSE, path, name){
   if(nrow(data) == 0){
@@ -101,7 +101,7 @@ getVisNetwork <- function(data, len = 0, save = FALSE, path, name){
   v <-visNetwork(nodes, edges, width = "100%") %>%
     visClusteringOutliers(1)
   if(save){
-    visSave(v, "testing.html",
+    visSave(v, path,
             selfcontained = TRUE, background = "white")
   }
   return(v)
