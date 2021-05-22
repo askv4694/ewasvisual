@@ -44,11 +44,11 @@ makeNodes <- function(df){
   df <- df[union(df$from[df$to > 0],df$to),]
   nodes <- data.frame(id = df$id,
                       group = df$trait,
-                      label = df$id,
-                      value = df$value,
+                      label = df$PMID,
+                      value = df$title_e,
                       shape = df$shape,
                       title = apply(df, 1, function(x)
-                        paste(x["title_n"], x["trait"], sep = "\n")),
+                        paste(x["title_n"],"<br>",x["trait"], sep = "\n")),
                       color = df$color
                       #shadow = FALSE
                       )
@@ -62,17 +62,21 @@ makeNodes <- function(df){
 #' @example
 #' edges <- makeEdges(df)
 #' @export
-makeEdges <- function(df){
+makeEdges <- function(df, len){
   edges <- data.frame(from = df$from,
                       to = df$to,
-                      value = df$title_e,
-                      #length = df$title_e,
+                      value = df$length,
+                      color = df$edgeCol,
+                      #length = 200,
                       #arrows = df$arrows,
                       #dashes = FALSE,
-                      title = df$title_e
+                      title = df$length
                       #smooth = FALSE,
                       #shadow = FALSE
                       )
+  if(len > 0){
+    edges$length = len
+  }
   return(edges)
 }
 
@@ -90,15 +94,19 @@ makeEdges <- function(df){
 #' network <- getVisNetwork(data)
 #' network <- getVisNetwork(data, TRUE, "C:/../home/test.html", "save.html")
 #' @export
-getVisNetwork <- function(data, len = 0, save = FALSE, path, name){
+getVisNetwork <- function(data, edgeLen = 100, len = 0, save = FALSE, path){
   if(nrow(data) == 0){
     print("There are no networks to show.")
   }
   library(visNetwork)
   data <- hideArrows(data, len)
   nodes <- makeNodes(data)
-  edges <- makeEdges(data)
-  v <-visNetwork(nodes, edges, width = "100%") %>%
+  edges <- makeEdges(data, edgeLen)
+
+
+
+  v <-visNetwork(nodes, edges, width = "100%" , height = 700) %>%
+    visNodes(scaling = list(label = list(enabled = T))) %>%
     visClusteringOutliers(1)
   if(save){
     visSave(v, path,
@@ -120,12 +128,13 @@ getVisNetwork <- function(data, len = 0, save = FALSE, path, name){
 #' df <- getSimilarTraits(data2, study = c("ES00034, "ES00035))
 #' df <- getSimilarTraits(data2, c(1,2,3,42))
 #' @export
-getSimilarTraits <- function(data, id = 0, study = ""){
+getSimilarTraits <- function(data,study = ""){
 
-  ifelse((length(id) == 1),
-         ifelse((id == 0),
-                id <- data$id[data$title_n %in% study][1], 0), 0)
+  #ifelse((length(id) == 1),
+  #       ifelse((id == 0),
+  #              id <- data$id[data$title_n %in% study][1], 0), 0)
 
+  id <- data$id[data$title_n %in% study][1]
   tdata <- data[(data$from %in% id) |
                 ((data$from == 1) & (data$to %in% id)),]
   dat <- data.frame("id" = numeric(), "f.id" = numeric(),

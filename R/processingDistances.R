@@ -102,7 +102,7 @@ getEstimatedVals <- function(data, col){
 getSimilarCols <- function(data, col){
 
   vals <- getEstimatedVals(data,col)
-  odds <- vals[vals$odds > 1 & vals$pvals < 0.05,]
+  odds <- vals[vals$odds > 1 & vals$pvals <= 0.05,]
   odds <- odds[order(odds$odds, decreasing = TRUE),]
   return(odds)
 }
@@ -235,10 +235,12 @@ getNewRow <- function(df, data, col, name, shape, color){
   }
   for (i in 1:nrow(vals)){
     arr <- makeArray(rownames(data), col)
+    names <- rownames(vals)[i]
     tab <- table(factor(arr, levels = c(TRUE,FALSE)),
-                 factor(data[,rownames(vals)[i]], levels = c(TRUE,FALSE)))
-    df[nrow(df)+1,] <- c(nrow(df)+1, "", vals$odds[i], shape, name, color,
-                        name, rownames(vals)[i],vals$odds[i],tab[1])
+                 factor(data[,names], levels = c(TRUE,FALSE)))
+    df[nrow(df)+1,] <- c(nrow(df)+1, "", vals$odds[i], shape, name,color,
+                        name, rownames(vals)[i],
+                        round(tab[1]/sum(arr | data[,names]),digits = 2), sum(arr))
   }
   return(df)
 }
@@ -253,10 +255,11 @@ getNewRow <- function(df, data, col, name, shape, color){
 #' @export
 traitTable <- function(data){
   names <- unique(data$Study.id)
-  df <- data[1,c("Study.id", "Trait")]
+  df <- data[1,c("Study.id", "Trait", "PMID")]
   for(i in 1:length(names)){
     df[i,] <- c(names[i],
-                unique(data$Trait[data$Study.id == names[i]]))
+                unique(data$Trait[data$Study.id == names[i]]),
+                unique(data$PMID[data$Study.id ==names[i]]) )
   }
   return(df)
 }
@@ -276,6 +279,7 @@ addTrait <- function(traits, df, name="", traitName = ""){
   for (i in 1:length(names)){
     ids <- which(df$title_n %in% names[i])
     df[ids,"trait"] <- traits$Trait[traits$Study.id == names[i]][1]
+    df[ids, "PMID"] <- traits$PMID[traits$Study.id == names[i]][1]
   }
   df[which(is.na(df$trait)),"trait"] <- traitName
   return(df)
@@ -313,10 +317,17 @@ setTraitColors <- function(df,colors, traits){
 #' data2 <- makeConnections(data, positions, traits,
 #'      c("green", "yellow"), c("star", "circle"))
 #' @export
-makeConnections <- function(data, col = 15 ,name, type ,traitMatrix,
+makeConnections <- function(data, minSize = 50, col = 15 ,name,
+                            type ,traitMatrix,
                             traits, color = c("red","darkcyan"),
-                            shape = c("diamond", "circle")){
+                            shape = c("diamond", "elipsis")){
+  sums <-apply(data, 2, sum)
+  morethanX <- names(sums[sums > minSize])
+  length(morethanX)
+  data<- data[,colnames(data)%in% morethanX]
+
   study_names <- c(name,colnames(data))
+
   if(typeof(col) == "double"){
     col <- names(which(data[,col] == TRUE))
   }
@@ -345,12 +356,16 @@ makeConnections <- function(data, col = 15 ,name, type ,traitMatrix,
 
   df$length <- as.numeric(df$length)
 
-  df$arrows <- c("to")
+  df$arrows <- "to"
   df <- addTrait(traitMatrix, df, name, type)
   if((length(color) > 2)){
     df <- setTraitColors(df, colors[-c(1:2)], traits)
   }
 
+  df$edgeCol <- "grey"
+  df$edgeCol[df$from == 1] <- color[1]
+  df$trait[df$from == 1] <- type
+  df$PMID[df$from == 1] <- "NA"
   return(df)
 }
 

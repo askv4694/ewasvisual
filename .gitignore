@@ -24,3 +24,9 @@ visuals/covid_files/vis-4.20.1/img/network/addNodeIcon.png
 visuals/covid_files/vis-4.20.1/vis.css
 visuals/covid_files/vis-4.20.1/vis.min.js
 visuals/covid_files/visNetwork-binding-2.0.9/visNetwork.js
+*.js
+*.css
+visuals/covid_50cg.html
+visuals/covid_100cg.html
+mockdata/covid_50cg.rds
+mockdata/covid.csv
