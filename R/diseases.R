@@ -10,7 +10,7 @@ hideArrows <- function(df, minLength = 0){
   for(i in 1:nrow(df)){
     row <- df[i,]
     check <- which(((df$from == row$to) & (df$to == row$from)) |
-                     ((df$title_e < minLength) & (df$from != 1)))
+                     ((df$count < minLength) & (df$from != 1)))
     if ((length(check) > 0 & df$arrows[i] != "")){
       df[check,"arrows"] <- ""
       df[check,"to"] <- 0
@@ -45,10 +45,10 @@ makeNodes <- function(df){
   nodes <- data.frame(id = df$id,
                       group = df$trait,
                       label = df$PMID,
-                      value = df$title_e,
+                      value = df$count,
                       shape = df$shape,
                       title = apply(df, 1, function(x)
-                        paste(x["title_n"],"<br>",x["trait"], sep = "\n")),
+                        paste(x["Study.id"],"<br>",x["trait"], sep = "\n")),
                       color = df$color
                       #shadow = FALSE
                       )
@@ -65,12 +65,12 @@ makeNodes <- function(df){
 makeEdges <- function(df, len){
   edges <- data.frame(from = df$from,
                       to = df$to,
-                      value = df$length,
+                      value = df$coef,
                       color = df$edgeCol,
                       #length = 200,
                       #arrows = df$arrows,
                       #dashes = FALSE,
-                      title = df$length
+                      title = df$coef
                       #smooth = FALSE,
                       #shadow = FALSE
                       )
@@ -99,6 +99,7 @@ getVisNetwork <- function(data, edgeLen = 100, len = 0, save = FALSE, path){
     print("There are no networks to show.")
   }
   library(visNetwork)
+  data$arrows <- "to"
   data <- hideArrows(data, len)
   nodes <- makeNodes(data)
   edges <- makeEdges(data, edgeLen)
@@ -128,25 +129,26 @@ getVisNetwork <- function(data, edgeLen = 100, len = 0, save = FALSE, path){
 #' df <- getSimilarTraits(data2, study = c("ES00034, "ES00035))
 #' df <- getSimilarTraits(data2, c(1,2,3,42))
 #' @export
-getSimilarTraits <- function(data,study = ""){
-
-  #ifelse((length(id) == 1),
-  #       ifelse((id == 0),
-  #              id <- data$id[data$title_n %in% study][1], 0), 0)
-
-  id <- data$id[data$title_n %in% study][1]
-  tdata <- data[(data$from %in% id) |
+getSimilarTraits <- function(data,study = 0){
+  tdata <- data
+  if (typeof(study) == "character"){
+    id <- data$id[data$Study.id %in% study][1]
+    tdata <- data[(data$from %in% id) |
                 ((data$from == 1) & (data$to %in% id)),]
+  }
   dat <- data.frame("id" = numeric(), "f.id" = numeric(),
                    "fStudy.id" = character(), "f.trait" = character(),
                    "t.id" = numeric(), "tStudy.id" = character(),
-                   "t.trait" = character(), "overlaps" = numeric(),
+                   "t.trait" = character(), "coef" = numeric(),
+                   "count" = numeric(), "PMID" = character(),
+                   "Ancestry" = character(),
                    stringsAsFactors = FALSE)
   for(i in 1:nrow(tdata)){
     tid <- tdata$to[i]
-    dat[i,] <- c(tdata$id[i], tdata$from[i], tdata$title_n[i],
-                 tdata$trait[i], tdata$to[i], data$title_n[tid],
-                 data$trait[tid], tdata$title_e[i])
+    dat[i,] <- c(tdata$id[i], tdata$from[i], tdata$Study.id[i],
+                 tdata$trait[i], tdata$to[i], data$Study.id[tid],
+                 data$trait[tid], tdata$coef[i], tdata$count[i],
+                 tdata$PMID[i], tdata$Ancestry[i])
   }
   return(dat)
 }
@@ -165,7 +167,7 @@ getSimilarTraits <- function(data,study = ""){
 #' @example
 #' df <- dfForHistogram(data, positions)
 #' @export
-dfForHistogram <- function(data, positions, traits = 0){
+dfForHistogram <- function(data, positions = 0, traits = 0){
   library(dplyr)
   library(tidyverse)
   library(ggplot2)
@@ -176,9 +178,13 @@ dfForHistogram <- function(data, positions, traits = 0){
     traits <- unique(traitst)
     data <- data[data$Trait %in% traits,]
   }
+  posd <- unique(positions)
+  pos <- unique(data$Probe.id)
+  if (typeof(posd) == "character"){
+    data <- data[data$Probe.id %in% posd,]
+    pos <- unique(positions)
+  }
 
-  pos <- unique(positions)
-  data <- data[data$Probe.id %in% positions,]
   df <- data.frame("Probe.id" = character(), "Trait" = character(),
              "count" = numeric(), stringsAsFactors = FALSE)
   id <- 1
@@ -205,13 +211,19 @@ dfForHistogram <- function(data, positions, traits = 0){
 #' @example
 #' hist <- stackedHistogram(df, 150)
 #' @export
-stackedHistogram <- function(df, minCount = 1){
-  g <- ggplot(df[df$count > minCount,], aes(x = Probe.id, y = count,
-                 label = count, fill = Trait)) +
-  geom_bar(stat = "identity") +
-  geom_text(size = 3, position = position_stack(vjust = 0.5)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  return(g)
+stackedHistogram <- function(df, minCount = 1, save = FALSE, path){
+  library(highcharter)
+  hc <- df[df$count > minCount,] %>%
+    hchart(
+      'column', hcaes(x = 'Probe.id', y = 'count', group = 'Trait'),
+      stacking = "normal",
+    ) %>%
+    hc_xAxis(title = list(text = 'CG positions'))
+
+  if(save){
+    saveWidget(hc, path)
+  }
+  return(hc)
 }
 
 
@@ -267,3 +279,6 @@ instructions <- function(){
 
 #saveWidget(v, file = "mockdata/v.html")
 
+#install.packages("highcharter")
+#%>%
+ # hc_colors(c("#0073C2FF", "#EFC000FF"))

@@ -206,7 +206,7 @@ convertIDS <- function(df, cln){
   names <- unique(df[,cln])
   for(i in 1:length(names)){
     ids <- which(df[,cln] %in% names[i])
-    df[ids, cln] <- df$id[df$title_n == names[i]][1]
+    df[ids, cln] <- df$id[df$Study.id == names[i]][1]
   }
   return(df)
 }
@@ -230,7 +230,6 @@ getNewRow <- function(df, data, col, name, shape, color){
   vals <- getSimilarCols(data, col)
   id <- nrow(df)+1
   if(nrow(vals) == 0){
-    #df[id,] <- c(id, "", 0, shape, name, color, name, name, 0, 0)
     return(df)
   }
   for (i in 1:nrow(vals)){
@@ -255,11 +254,12 @@ getNewRow <- function(df, data, col, name, shape, color){
 #' @export
 traitTable <- function(data){
   names <- unique(data$Study.id)
-  df <- data[1,c("Study.id", "Trait", "PMID")]
+  df <- data[1,c("Study.id", "Trait", "PMID", "Ancestry")]
   for(i in 1:length(names)){
     df[i,] <- c(names[i],
                 unique(data$Trait[data$Study.id == names[i]]),
-                unique(data$PMID[data$Study.id ==names[i]]) )
+                unique(data$PMID[data$Study.id ==names[i]]),
+                unique(data$Ancestry[data$Study.id ==names[i]]) )
   }
   return(df)
 }
@@ -275,11 +275,12 @@ traitTable <- function(data){
 #' data<- addTrait(traits, df, "new_Study", "aging")
 #' @export
 addTrait <- function(traits, df, name="", traitName = ""){
-  names <- unique(df$title_n)
+  names <- unique(df$Study.id)
   for (i in 1:length(names)){
-    ids <- which(df$title_n %in% names[i])
+    ids <- which(df$Study.id %in% names[i])
     df[ids,"trait"] <- traits$Trait[traits$Study.id == names[i]][1]
     df[ids, "PMID"] <- traits$PMID[traits$Study.id == names[i]][1]
+    df[ids, "Ancestry"] <- traits$Ancestry[traits$Study.id == names[i]][1]
   }
   df[which(is.na(df$trait)),"trait"] <- traitName
   return(df)
@@ -320,7 +321,7 @@ setTraitColors <- function(df,colors, traits){
 makeConnections <- function(data, minSize = 50, col = 15 ,name,
                             type ,traitMatrix,
                             traits, color = c("red","darkcyan"),
-                            shape = c("diamond", "elipsis")){
+                            shape = c("circle", "elipsis")){
   sums <-apply(data, 2, sum)
   morethanX <- names(sums[sums > minSize])
   length(morethanX)
@@ -331,11 +332,11 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   if(typeof(col) == "double"){
     col <- names(which(data[,col] == TRUE))
   }
-  df <- data.frame(id = integer(), group = character(),
-                   value = double(), shape = character(),
-                   title_n = character(), color = character(),
+  df <- data.frame(id = integer(), Ancestry = character(),
+                   odds = double(), shape = character(),
+                   Study.id = character(), color = character(),
                    from = character(), to = character(),
-                   length = double(), title_e = integer(),
+                   coef = double(), count = integer(),
                    stringsAsFactors = FALSE)
   df <- getNewRow(df,data,col, name, shape[1], color[1])
   for(i in 1:length(study_names)-1){
@@ -345,8 +346,8 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   }
 
   df$id<- as.numeric(df$id)
-  df$value <- as.numeric(df$value)
-  df$title_e <- as.numeric(df$title_e)
+  df$odds <- as.numeric(df$odds)
+  df$count <- as.numeric(df$count)
 
   df <- convertIDS(df, "from")
   df <- convertIDS(df, "to")
@@ -354,9 +355,8 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   df$from <- as.numeric(df$from)
   df$to <- as.numeric(df$to)
 
-  df$length <- as.numeric(df$length)
+  df$coef <- as.numeric(df$coef)
 
-  df$arrows <- "to"
   df <- addTrait(traitMatrix, df, name, type)
   if((length(color) > 2)){
     df <- setTraitColors(df, colors[-c(1:2)], traits)
@@ -368,6 +368,5 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   df$PMID[df$from == 1] <- "NA"
   return(df)
 }
-
 
 
