@@ -44,14 +44,18 @@ makeNodes <- function(df){
   df <- df[union(df$from[df$to > 0],df$to),]
   nodes <- data.frame(id = df$id,
                       group = df$trait,
-                      label = df$PMID,
+                      label = df$count,
                       value = df$count,
                       shape = df$shape,
                       title = apply(df, 1, function(x)
-                        paste(x["Study.id"],"<br>",x["trait"], sep = "\n")),
+                        paste(x["Study.id"],"<br>","PMID:",x["PMID"],
+                              "<br>",x["trait"], sep = "\n")),
                       color = df$color
                       #shadow = FALSE
                       )
+  if("group" %in% colnames(df)){
+    nodes$group = df$group
+  }
   return(nodes)
 }
 
@@ -104,11 +108,16 @@ getVisNetwork <- function(data, edgeLen = 100, len = 0, save = FALSE, path){
   nodes <- makeNodes(data)
   edges <- makeEdges(data, edgeLen)
 
-
+  ledges <- data.frame(color = unique(data$color),
+                       label = unique(data$group),
+                       shape = "circle")
 
   v <-visNetwork(nodes, edges, width = "100%" , height = 700) %>%
     visNodes(scaling = list(label = list(enabled = T))) %>%
-    visClusteringOutliers(1)
+    visClusteringOutliers(1) %>%
+    visLegend(useGroups = F, addEdges = ledges)
+
+
   if(save){
     visSave(v, path,
             selfcontained = TRUE, background = "white")
@@ -167,11 +176,11 @@ getSimilarTraits <- function(data,study = 0){
 #' @example
 #' df <- dfForHistogram(data, positions)
 #' @export
-dfForHistogram <- function(data, positions = 0, traits = 0){
+dfForHistogram <- function(data, positions = 0, traits = 0, anno = 0){
   library(dplyr)
   library(tidyverse)
   library(ggplot2)
-
+  #data <- appendMatrixSize(positions, data)
   traitst <- traits
   traits <- unique(data$Trait)
   if (typeof(traitst) == "character"){
@@ -184,9 +193,16 @@ dfForHistogram <- function(data, positions = 0, traits = 0){
     data <- data[data$Probe.id %in% posd,]
     pos <- unique(positions)
   }
+  flag <- FALSE
+  if(typeof(anno) == "list"){
+    anno <- anno[,c("Probe.id", "Chr", "Pos")]
+    anno <- anno[anno$Probe.id %in% pos,]
+    flag <- TRUE
+  }
 
   df <- data.frame("Probe.id" = character(), "Trait" = character(),
-             "count" = numeric(), stringsAsFactors = FALSE)
+             "count" = numeric(), "chr" = numeric(), "pos" = numeric(),
+             stringsAsFactors = FALSE)
   id <- 1
   for(i in 1:length(pos)){
     for(j in 1:length(traits)){
@@ -196,9 +212,16 @@ dfForHistogram <- function(data, positions = 0, traits = 0){
         df[id,1] <- pos[i]
         df[id,2] <- traits[j]
         df[id,3] <- count
+        df[id,4] <- ifelse(flag,
+                           anno$Chr[anno$Probe.id == pos[i]], NA)
+        df[id,5] <- ifelse(flag,
+                           anno$Pos[anno$Probe.id == pos[i]], NA)
         id <- id +1
       }
     }
+  }
+  if(flag){
+    df<- df[order(df$chr, df$pos),]
   }
   return(df)
 }
@@ -213,9 +236,14 @@ dfForHistogram <- function(data, positions = 0, traits = 0){
 #' @export
 stackedHistogram <- function(df, minCount = 1, save = FALSE, path){
   library(highcharter)
+  library(htmlwidgets)
+  if("chr" %in% colnames(df)){
+    df <- df[order(df$chr, df$pos),]
+  }
+
   hc <- df[df$count > minCount,] %>%
     hchart(
-      'column', hcaes(x = 'Probe.id', y = 'count', group = 'Trait'),
+      'column', hcaes(x = "Probe.id", y = 'count', group = 'Trait'),
       stacking = "normal",
     ) %>%
     hc_xAxis(title = list(text = 'CG positions'))

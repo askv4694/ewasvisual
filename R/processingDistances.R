@@ -322,6 +322,13 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
                             type ,traitMatrix,
                             traits, color = c("red","darkcyan"),
                             shape = c("circle", "elipsis")){
+
+  if(typeof(col) == "character"){
+    mat <- appendMatrixSize(col,data)
+    if(typeof(mat) != "logical"){
+      data <- mat
+    }
+  }
   sums <-apply(data, 2, sum)
   morethanX <- names(sums[sums > minSize])
   length(morethanX)
@@ -332,6 +339,7 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   if(typeof(col) == "double"){
     col <- names(which(data[,col] == TRUE))
   }
+
   df <- data.frame(id = integer(), Ancestry = character(),
                    odds = double(), shape = character(),
                    Study.id = character(), color = character(),
@@ -364,9 +372,45 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
 
   df$edgeCol <- "grey"
   df$edgeCol[df$from == 1] <- color[1]
+  df$color[df$from == 1] <- color[1]
   df$trait[df$from == 1] <- type
   df$PMID[df$from == 1] <- "NA"
   return(df)
+}
+
+####
+#mycolors <- c("Yellow", "Lime", "Green", "Blue", "Purple",
+#              "Maroon", "Brown", "Olive", "Teal", "Orange",
+#              "Magenta", "Pink", "Apricot", "Mint", "Lavender",
+#              "Coffee", "Burgundy", "Sangria", "Eggplant", "Cedar")
+
+#library(scales)
+#install.packages("viridis")
+#library(viridis)
+#colors <- viridis_pal()(21)
+
+
+#library(randomcoloR)
+#install.packages("randomcoloR")
+#colors <- distinctColorPalette(21)
+#colors <- rainbow(21)
+#colors <- colors[c(-1)]
+#colors
+groupColor <- function(data, colorData, colors){
+  library(RColorBrewer)
+  #names <- unique(data$Study.id)
+  groups <- unique(colorData$Group)
+  #ncol <- length(groups)
+
+  data$group <- ""
+  for(i in 1:length(groups)){
+    ids <- colorData$Study.id[colorData$Group == groups[i]]
+    data$color[data$Study.id %in% ids] <- colors[i]
+    data$group[data$Study.id %in% ids] <- groups[i]
+  }
+  data$group[data$from == 1] <- "Your study"
+  #data$color[df$from == 1] <- unique(data$edgeCol[data$from == 1])
+  return(data)
 }
 
 
