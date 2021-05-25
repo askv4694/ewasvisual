@@ -1,11 +1,3 @@
-
-
-# To be implemented for data from URL if it will work
-#getEwasData <- function(arrays){
-# url <- 'd'
-#}
-
-
 #' Get Raw Mock Data
 #'
 #' @return List of matrices: cohorts, associations, studies and annotations
@@ -61,7 +53,7 @@ removeDuplicates <- function(data){
 #' Merge several data matrices
 #'
 #' @param matrices A list of matrices to merge
-#' @param merge_by A column name that will be merged by
+#' @param merge_by A column name that will be merged by.
 #' Must have same column name
 #' @return Returns merged dataframe of listed matrices
 #' @examples

@@ -1,4 +1,3 @@
-
 #' True and False matrix
 #'
 #' @param row An array of rowanames from the matrix
@@ -6,7 +5,7 @@
 #' @return Returns a matrix of rows and columns. Value is either TRUE or
 #' FALSE depending on column and row match
 #' @examples
-#' matrix <- rowAndCwol(c("cg00000000", "cg00000000"), c("Headache","Ache"))
+#' matrix <- rowAndCwol(c("cg00000000", "cg00000000"), c("Headache","Smoking"))
 #' matrix <- rowAndCol(dataFrame$Probe, dataFrame$Trait)
 #' @export
 rowAndCol <-function(row ,col){
@@ -49,10 +48,10 @@ appendMatrixSize <- function(col, data){
 
 #' Make an array of TRUE/FALSE for given positions
 #'
-#' @param change An araay with names that will be changed to
+#' @param change An araay with names that will be changed into
 #' @param col An array with names which will have same names
-#' with same order as change array
-#' @return Rearranged array. May be extended accordingly
+#' with same order as change array as well as TRUE/FALSE values
+#' @return Rearranged array
 #' @examples
 #' row <- rearrange(c("a", "b", "c"), c("c", "b", "t"))
 makeArray <- function(change,col){
@@ -70,8 +69,6 @@ makeArray <- function(change,col){
 #' list_of_datas <- getEstimatedVals(matrix, colnames)
 #' @export
 getEstimatedVals <- function(data, col){
-  #odds  <- matrix(nrow = nrow(data), ncol = ncol(data),
-  #      dimnames = list(rownames(data),  colnames(data)))
   names <- rownames(data)
 
   col <- makeArray(names, col)
@@ -150,6 +147,7 @@ filterBy <- function(data, colName, array){
 #' that wants to be checked, 0 by default - all positions included
 #' @param studies An array of study names that wants to be checked,
 #' 0 by default - all study names included
+#' @param studByTraits A list of trait names to be filtered by. 0 by default
 #' @param maxPositions Set to FALSE by Default. If set to TRUE,
 #' 900k positions will be used in general
 #' @param minSampleSize Minimal sample size to be used. Set to 100 by default
@@ -307,12 +305,15 @@ setTraitColors <- function(df,colors, traits){
 #' Make a dataframe of linked studies
 #'
 #' @param data A data matrix with TRUE/FALSE values
+#' @param minSize A number that defines minimum sample size: > X. 50 by default
 #' @param col An array of cg positions in the new study
 #' @param name A name of the study
-#' @param traits A dataframe of studies and their traits
+#' @param type Disease type
+#' @param traitMatrix A dataframe of studies and their traits
+#' @param traits A list of trait names to filter by
 #' @param color An array of colors to be used. First is for new and the
 #' second if for other studies. Red and darcyan by default
-#' @param shape An array of shapes for plot. Diamond and circle by default
+#' @param shape An array of shapes for plot. Circle and elipsis by default
 #' @return A dataframe that is used in visNetwork
 #' @example
 #' data2 <- makeConnections(data, positions, traits,
@@ -378,24 +379,17 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
   return(df)
 }
 
-####
-#mycolors <- c("Yellow", "Lime", "Green", "Blue", "Purple",
-#              "Maroon", "Brown", "Olive", "Teal", "Orange",
-#              "Magenta", "Pink", "Apricot", "Mint", "Lavender",
-#              "Coffee", "Burgundy", "Sangria", "Eggplant", "Cedar")
 
-#library(scales)
-#install.packages("viridis")
-#library(viridis)
-#colors <- viridis_pal()(21)
-
-
-#library(randomcoloR)
-#install.packages("randomcoloR")
-#colors <- distinctColorPalette(21)
-#colors <- rainbow(21)
-#colors <- colors[c(-1)]
-#colors
+#' Assign color by group
+#'
+#' @param data A dataframe from makeConnections
+#' @param colorData A dataframe with group names and study.id
+#' @param colors A list of colors that should be assigned for each group
+#' @return A dataframe with colors by group name
+#' @examples
+#' colored_data <- groupColor(data, colorData, c("yellow", "green"))
+#' colored_data <- groupColor(data, colorData, c("#22105", "#00FF4E"))
+#' @export
 groupColor <- function(data, colorData, colors){
   library(RColorBrewer)
   #names <- unique(data$Study.id)
