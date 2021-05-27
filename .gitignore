@@ -46,8 +46,7 @@ visuals/all_technicals_network.html
 visuals/covid_42_network.html
 visuals/covid_network_colors.html
 visuals/covid_network_colors_PMID.html
-visuals/covid_w_others.html
-visuals/covid_w_others_histogram.html
+visuals/covid_w_others.htmlvisuals/covid_w_others_histogram.html
 
 visuals/pollution_w_others_cg.html
 visuals/pollution_w_same_type.html
@@ -56,3 +55,6 @@ visuals/pollution_w_others_legend.html
 visuals/covid_w_others_legend_13.html
 visuals/technical_network_colors.html
 visuals/technical_network.html
+visuals/pollution_w_all_types.html
+visuals/covid_w_others_histogram.html
+visuals/covid_w_others.html
