@@ -7,7 +7,7 @@
 traitTable(data)
 }
 \arguments{
-\item{dara}{Primary dataframe that is used for identifying
+\item{data}{Primary dataframe that is used for identifying
 traits according to study names}
 }
 \value{

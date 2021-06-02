@@ -21,6 +21,6 @@ Filter data according to given array
 }
 \examples{
 data <- filterBy(data, "Probe.id", c("cg02609880", "cg06874172"))
-data <- filterBy(data, "Study.id", c("ES00034, "ES00035))
+data <- filterBy(data, "Study.id", c("ES00034", "ES00035"))
 data <- filterBy(data, "Trait", c("aging", "air pollution (PM2.5)"))
 }

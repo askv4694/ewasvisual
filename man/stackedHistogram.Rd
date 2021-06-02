@@ -21,5 +21,5 @@ A stacked histogram
 }
 \examples{
 hist <- stackedHistogram(df)
-hist <- stackedHistogram(df, 0, path = "C:/.../histogram.html")
+hist <- stackedHistogram(df, 0, path = 'C:/.../histogram.html')
 }

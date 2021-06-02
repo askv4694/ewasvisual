@@ -31,7 +31,7 @@ rowAndCol <-function(row ,col){
 #' data <- appendMatrixSize(col, dataFrame)
 #' @export
 appendMatrixSize <- function(col, data){
-  toAdd <- unique(col) %in% unique(rownames(data))
+  toAdd <- (unique(col)) %in% (unique(rownames(data)))
 
   # Check if there are new positions
   if (length(which(!toAdd)) == 0){
@@ -130,7 +130,7 @@ maxMatrix <- function(data){
 #' @return A dataframe of filtered data
 #' @examples
 #' data <- filterBy(data, "Probe.id", c("cg02609880", "cg06874172"))
-#' data <- filterBy(data, "Study.id", c("ES00034, "ES00035))
+#' data <- filterBy(data, "Study.id", c("ES00034", "ES00035"))
 #' data <- filterBy(data, "Trait", c("aging", "air pollution (PM2.5)"))
 #' @export
 filterBy <- function(data, colName, array){
@@ -244,7 +244,7 @@ getNewRow <- function(df, data, col, name, shape, color){
 
 #' Trait table
 #'
-#' @param dara Primary dataframe that is used for identifying
+#' @param data Primary dataframe that is used for identifying
 #' traits according to study names
 #' @return A dataframe with trait for each study name
 #' @example
@@ -391,10 +391,7 @@ makeConnections <- function(data, minSize = 50, col = 15 ,name,
 #' colored_data <- groupColor(data, colorData, c("#22105", "#00FF4E"))
 #' @export
 groupColor <- function(data, colorData, colors){
-  library(RColorBrewer)
-  #names <- unique(data$Study.id)
   groups <- unique(colorData$Group)
-  #ncol <- length(groups)
 
   data$group <- ""
   for(i in 1:length(groups)){
@@ -403,7 +400,6 @@ groupColor <- function(data, colorData, colors){
     data$group[data$Study.id %in% ids] <- groups[i]
   }
   data$group[data$from == 1] <- "Your study"
-  #data$color[df$from == 1] <- unique(data$edgeCol[data$from == 1])
   return(data)
 }
 
