@@ -24,11 +24,11 @@ rowAndCol <-function(row ,col){
 
 #' Append matrix rows
 #'
-#' @param col An array that has more positions that the matrix
+#' @param col An array that has more positions than the matrix
 #' @param data A dataframe which will be appended
 #' @return Return appended dataframe
 #' @examples
-#' data <- appendMatrixSize(col, dataFrame)
+#' data <- appendMatrixSize(col = c("cg11001140", "cg88888888"), dataFrame)
 #' @export
 appendMatrixSize <- function(col, data){
   toAdd <- (unique(col)) %in% (unique(rownames(data)))

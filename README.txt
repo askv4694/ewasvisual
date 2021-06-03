@@ -12,12 +12,20 @@ By default the next function will use 15th study from matrix
 data2 <- makeConnections(data1, name = "studyName",
         type = "", traitMatrix = traits)
 
+-------------------------------------------
+Please be aware that this part is optional
 If there is a need for colors and a legend then please provide
         a dataframe with studynames and trait group like this:
-colors <- rainbow(21)
-colors <- colors[c(-1)] ##Because first must not be red because
-        it's study color by default
-data2 <- groupColors(data2, aMatrixWithGroup, anArrayOfColors
+group <- readRDS("mockdata/groups.rds")
+#Please be noted that these groups are provided for data
+        stored in mockdata file
+
+colors <- rainbow(21) ##21 is a number which defines how
+        many colors will be there
+colors <- colors[c(-1)] ##First must not be red because
+        it's your study color by default
+data2 <- groupColors(data2, group, colors)
+-------------------------------------------
 
 Possibility to check connections in terminal window
 similar <- getSimilarTraits(data2)

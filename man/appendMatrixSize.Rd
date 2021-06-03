@@ -7,7 +7,7 @@
 appendMatrixSize(col, data)
 }
 \arguments{
-\item{col}{An array that has more positions that the matrix}
+\item{col}{An array that has more positions than the matrix}
 
 \item{data}{A dataframe which will be appended}
 }
@@ -18,5 +18,5 @@ Return appended dataframe
 Append matrix rows
 }
 \examples{
-data <- appendMatrixSize(col, dataFrame)
+data <- appendMatrixSize(col = c("cg11001140", "cg88888888"), dataFrame)
 }
