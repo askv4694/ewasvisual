@@ -291,7 +291,7 @@ instructions <- function(){
         many colors will be there")
   print("colors <- colors[c(-1)] ##First must not be red because
         it's your study color by default")
-  print("data2 <- groupColors(data2, group, colors")
+  print("data2 <- groupColors(data2, group, colors)")
   print("-------------------------------------------")
 
   print("Possibility to check connections in terminal window")
