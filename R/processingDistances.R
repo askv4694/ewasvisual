@@ -24,7 +24,7 @@ rowAndCol <-function(row ,col){
 
 #' Append matrix rows
 #'
-#' @param col An array that has more positions than the matrix
+#' @param col A vector that has different positions than the matrix
 #' @param data A dataframe which will be appended
 #' @return Return appended dataframe
 #' @examples

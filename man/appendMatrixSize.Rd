@@ -7,7 +7,7 @@
 appendMatrixSize(col, data)
 }
 \arguments{
-\item{col}{An array that has more positions than the matrix}
+\item{col}{A vector that has different positions than the matrix}
 
 \item{data}{A dataframe which will be appended}
 }
